@@ -27,7 +27,8 @@
 #include <optional>
 #include <set>
 #include <unordered_map>
-
+#include <string>
+using namespace std;
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
@@ -121,7 +122,17 @@ struct Vertex {
 		return pos == other.pos && color == other.color && texCoord == other.texCoord;
 	}
 };
+struct Model {
+	string modelPath;
+	string texturePath;
+	glm::vec3 coordinates;
+	Model(string modelLocation, string textureLocation, glm::vec3 coord) {
+		modelPath = modelLocation;
+		texturePath = textureLocation;
+		coordinates = coord;
+	}
 
+};
 namespace std {
 	template<> struct hash<Vertex> {
 		size_t operator()(Vertex const& vertex) const {
@@ -209,7 +220,8 @@ private:
 	size_t currentFrame = 0;
 
 	bool framebufferResized = false;
-
+	std::vector<Model> models = {Model("models/Chalet.obj", "hello", glm::vec3(0.0f,0.0f,0.0f))};
+	
 	void initWindow() {
 		glfwInit();
 
@@ -243,7 +255,7 @@ private:
 		createTextureImage();
 		createTextureImageView();
 		createTextureSampler();
-		loadModel();
+		loadModels();
 		createVertexBuffer();
 		createIndexBuffer();
 		createUniformBuffers();
@@ -1154,13 +1166,13 @@ private:
 		endSingleTimeCommands(commandBuffer);
 	}
 
-	void loadModel() {
+	void loadModel(string modelPath, glm::vec3 coord) {
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string warn, err;
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str())) {
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, modelPath.c_str())) {
 			throw std::runtime_error(warn + err);
 		}
 
@@ -1171,9 +1183,9 @@ private:
 				Vertex vertex = {};
 
 				vertex.pos = {
-					attrib.vertices[3 * index.vertex_index + 0],
-					attrib.vertices[3 * index.vertex_index + 1],
-					attrib.vertices[3 * index.vertex_index + 2]
+					attrib.vertices[3 * index.vertex_index + 0] + coord.x,
+					attrib.vertices[3 * index.vertex_index + 1] + coord.y,
+					attrib.vertices[3 * index.vertex_index + 2] + coord.z
 				};
 
 				vertex.texCoord = {
@@ -1486,7 +1498,11 @@ private:
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
 	}
-
+	void loadModels() {
+		for (Model model : models) {
+			loadModel(model.modelPath, model.coordinates);
+		}
+	}
 	void drawFrame() {
 		vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
