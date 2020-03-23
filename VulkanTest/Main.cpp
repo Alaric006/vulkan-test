@@ -220,7 +220,14 @@ private:
 	size_t currentFrame = 0;
 	double currentTime;
 	double lastTime = 0;
-	glm::vec3 cameraPos = glm::vec3(2.0f, 0.0f, 2.0f);
+	glm::vec3 direction;
+	glm::vec3 right;
+	glm::vec3 up;
+	glm::vec3 position = glm::vec3(0,0,5.0f);
+	double speed = 5;
+	double sensitivity = 5;
+	double horizontalAngle = 0;
+	double verticalAngle = 0;
 
 	bool framebufferResized = false;
 	std::vector<Model> models = {Model("models/Chalet.obj", "hello", glm::vec3(0.0f,0.0f,0.0f))};
@@ -1485,28 +1492,13 @@ private:
 	}
 
 	void updateUniformBuffer(uint32_t currentImage) {
-		double xpos;
-		double ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		double speed = 5;
 		currentTime = glfwGetTime();
 		double deltaTime = (currentTime - lastTime);
 		lastTime = currentTime;
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-			cameraPos.y = cameraPos.y + deltaTime * speed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-			cameraPos.y = cameraPos.y - deltaTime * speed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-			cameraPos.x = cameraPos.x + deltaTime * speed;
-		}
-		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-			cameraPos.x = cameraPos.x - deltaTime * speed;
-		}
+		updateViewMatrixFromInput(deltaTime);
 		UniformBufferObject ubo = {};
 		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		ubo.view = glm::lookAt(cameraPos, glm::vec3(cameraPos.x, cameraPos.y, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		ubo.view = glm::lookAt(position, position + direction, glm::vec3(0.0f, 0.0f, 1.0f));
 		ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
 		ubo.proj[1][1] *= -1;
 		void* data;
@@ -1514,6 +1506,41 @@ private:
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
 	}
+	void updateViewMatrixFromInput(double deltaTime) {
+		double xpos;
+		double ypos;
+		int windowHeight;
+		int windowWidth;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		glfwGetWindowSize(window, &windowWidth, &windowHeight);
+		glfwSetCursorPos(window, windowWidth / 2, windowHeight / 2);
+		horizontalAngle += sensitivity * deltaTime * float(windowWidth / 2 - xpos);
+		verticalAngle += sensitivity * deltaTime * float(windowHeight / 2 - ypos);
+		direction = { cos(verticalAngle) * sin(horizontalAngle),
+					cos(verticalAngle) * cos(horizontalAngle),
+					sin(verticalAngle)
+		};
+		right = { sin(horizontalAngle - 3.14 / 2),
+			 cos(horizontalAngle - 3.14f / 2.0f),
+			0
+		};
+		up = glm::cross(right, direction);
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+			position += direction * float(deltaTime) * float(speed);
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+			position -= direction * float(deltaTime) * float(speed);
+		}
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+			position += right * float(deltaTime) * float(speed);
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+			position -= right * float(deltaTime) * float(speed);
+		}
+	}
+
+	
+
 	void loadModels() {
 		for (Model model : models) {
 			loadModel(model.modelPath, model.coordinates);
