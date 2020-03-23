@@ -218,6 +218,9 @@ private:
 	std::vector<VkFence> inFlightFences;
 	std::vector<VkFence> imagesInFlight;
 	size_t currentFrame = 0;
+	double currentTime;
+	double lastTime = 0;
+	glm::vec3 cameraPos = glm::vec3(2.0f, 0.0f, 2.0f);
 
 	bool framebufferResized = false;
 	std::vector<Model> models = {Model("models/Chalet.obj", "hello", glm::vec3(0.0f,0.0f,0.0f))};
@@ -1482,17 +1485,30 @@ private:
 	}
 
 	void updateUniformBuffer(uint32_t currentImage) {
-		static auto startTime = std::chrono::high_resolution_clock::now();
-
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
+		double xpos;
+		double ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		double speed = 5;
+		currentTime = glfwGetTime();
+		double deltaTime = (currentTime - lastTime);
+		lastTime = currentTime;
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+			cameraPos.y = cameraPos.y + deltaTime * speed;
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+			cameraPos.y = cameraPos.y - deltaTime * speed;
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+			cameraPos.x = cameraPos.x + deltaTime * speed;
+		}
+		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+			cameraPos.x = cameraPos.x - deltaTime * speed;
+		}
 		UniformBufferObject ubo = {};
-		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		ubo.view = glm::lookAt(cameraPos, glm::vec3(cameraPos.x, cameraPos.y, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
 		ubo.proj[1][1] *= -1;
-
 		void* data;
 		vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
