@@ -223,9 +223,9 @@ private:
 	glm::vec3 direction;
 	glm::vec3 right;
 	glm::vec3 up;
-	glm::vec3 position = glm::vec3(0,0,5.0f);
+	glm::vec3 position = glm::vec3(0,0,1.0f);
 	double speed = 5;
-	double sensitivity = 5;
+	double sensitivity = 2.5f;
 	double horizontalAngle = 0;
 	double verticalAngle = 0;
 
@@ -1514,8 +1514,8 @@ private:
 		glfwGetCursorPos(window, &xpos, &ypos);
 		glfwGetWindowSize(window, &windowWidth, &windowHeight);
 		glfwSetCursorPos(window, windowWidth / 2, windowHeight / 2);
-		horizontalAngle += sensitivity * deltaTime * float(windowWidth / 2 - xpos);
-		verticalAngle += sensitivity * deltaTime * float(windowHeight / 2 - ypos);
+		horizontalAngle -= sensitivity * deltaTime * float(windowWidth / 2 - xpos);
+		verticalAngle -= sensitivity * deltaTime * float(windowHeight / 2 - ypos);
 		direction = { cos(verticalAngle) * sin(horizontalAngle),
 					cos(verticalAngle) * cos(horizontalAngle),
 					sin(verticalAngle)
@@ -1525,16 +1525,16 @@ private:
 			0
 		};
 		up = glm::cross(right, direction);
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			position += direction * float(deltaTime) * float(speed);
 		}
-		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 			position -= direction * float(deltaTime) * float(speed);
 		}
-		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			position += right * float(deltaTime) * float(speed);
 		}
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			position -= right * float(deltaTime) * float(speed);
 		}
 	}
