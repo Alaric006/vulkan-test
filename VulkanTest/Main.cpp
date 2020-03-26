@@ -86,6 +86,7 @@ struct Vertex {
 	glm::vec3 pos;
 	glm::vec3 color;
 	glm::vec2 texCoord;
+	glm::vec3 normal;
 
 	static VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription = {};
@@ -96,8 +97,8 @@ struct Vertex {
 		return bindingDescription;
 	}
 
-	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+	static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions = {};
 
 		attributeDescriptions[0].binding = 0;
 		attributeDescriptions[0].location = 0;
@@ -113,6 +114,11 @@ struct Vertex {
 		attributeDescriptions[2].location = 2;
 		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
 		attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+
+		attributeDescriptions[3].binding = 0;
+		attributeDescriptions[3].location = 3;
+		attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[3].offset = offsetof(Vertex, normal);
 
 		return attributeDescriptions;
 	}
@@ -228,6 +234,7 @@ private:
 	double horizontalAngle = 0;
 	double verticalAngle = 0;
 	bool windowInFocus = true;
+	double time = 0.0f;
 
 	bool framebufferResized = false;
 	std::vector<Model> models = {Model("models/Chalet.obj", "hello", glm::vec3(0.0f,0.0f,0.0f))};
@@ -1494,6 +1501,7 @@ private:
 	void updateUniformBuffer(uint32_t currentImage) {
 		currentTime = glfwGetTime();
 		double deltaTime = (currentTime - lastTime);
+		time += deltaTime;
 		lastTime = currentTime;
 		updateViewMatrixFromInput(deltaTime);
 		UniformBufferObject ubo = {};
