@@ -1055,7 +1055,6 @@ private:
 			throw std::runtime_error("failed to create texture sampler!");
 		}
 	}
-
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
 		VkImageViewCreateInfo viewInfo = {};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
