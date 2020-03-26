@@ -231,20 +231,25 @@ private:
 	glm::vec3 position = glm::vec3(0,0,1.0f);
 	double speed = 5;
 	double sensitivity = 2.5f;
-	double horizontalAngle = 0;
+	double horizontalAngle = 3.14;
 	double verticalAngle = 0;
 	bool windowInFocus = true;
 	double time = 0.0f;
-
+	bool centeredMouse = false;
 	bool framebufferResized = false;
 	std::vector<Model> models = {Model("models/Chalet.obj", "hello", glm::vec3(0.0f,0.0f,0.0f))};
 	
 	void initWindow() {
 		glfwInit();
-
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-		window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+		window = glfwCreateWindow(mode->width, mode->height, "Vulkan", monitor, nullptr);
+		glfwSetWindowPos(window,0,0);
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 	}
@@ -1514,6 +1519,13 @@ private:
 		vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
 	}
 	void updateViewMatrixFromInput(double deltaTime) {
+		if (!centeredMouse) {
+			int windowHeight;
+			int windowWidth;
+			glfwGetWindowSize(window, &windowWidth, &windowHeight);
+			glfwSetCursorPos(window, windowWidth / 2, windowHeight / 2);
+			centeredMouse = true;
+		}
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			windowInFocus = false;
 		}
@@ -1529,13 +1541,13 @@ private:
 			glfwGetWindowSize(window, &windowWidth, &windowHeight);
 			glfwSetCursorPos(window, windowWidth / 2, windowHeight / 2);
 			horizontalAngle -= sensitivity * deltaTime * float(windowWidth / 2 - xpos);
-			verticalAngle -= sensitivity * deltaTime * float(windowHeight / 2 - ypos);
+			verticalAngle += sensitivity * deltaTime * float(windowHeight / 2 - ypos);
 			direction = { cos(verticalAngle) * sin(horizontalAngle),
 						cos(verticalAngle) * cos(horizontalAngle),
 						sin(verticalAngle)
 			};
-			right = { sin(horizontalAngle - 3.14 / 2),
-				 cos(horizontalAngle - 3.14f / 2.0f),
+			right = { -sin(horizontalAngle - 3.14f / 2.0f),
+				 -cos(horizontalAngle - 3.14f / 2.0f),
 				0
 			};
 			up = glm::cross(right, direction);
