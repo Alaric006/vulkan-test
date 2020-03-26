@@ -1544,6 +1544,12 @@ private:
 			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 				position -= right * float(deltaTime) * float(speed);
 			}
+			if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+				position += up * float(deltaTime) * float(speed);
+			}
+			if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+				position -= up * float(deltaTime) * float(speed);
+			}
 		}
 	}
 
