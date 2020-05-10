@@ -230,7 +230,7 @@ private:
 	glm::vec3 up;
 	glm::vec3 position = glm::vec3(0,0,1.0f);
 	double speed = 5;
-	double sensitivity = 2.5f;
+	double sensitivity = 1.0f;
 	double horizontalAngle = 3.14;
 	double verticalAngle = 0;
 	bool windowInFocus = true;
@@ -238,7 +238,8 @@ private:
 	bool centeredMouse = false;
 	bool framebufferResized = false;
 	std::vector<Model> models = {Model("models/Chalet.obj", "hello", glm::vec3(0.0f,0.0f,0.0f))};
-	
+	double forgiveAmmount = 0.05f;
+	uint32_t unfocused = 0;
 	void initWindow() {
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -248,7 +249,7 @@ private:
 		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-		window = glfwCreateWindow(mode->width, mode->height, "Vulkan", monitor, nullptr);
+		window = glfwCreateWindow(mode->width, mode->height, "Vulkan", nullptr, nullptr);
 		glfwSetWindowPos(window,0,0);
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -394,6 +395,10 @@ private:
 	}
 
 	void createInstance() {
+		uint32_t extensionCount = 0;
+		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+		std::cout << extensionCount << " extensions supported\n";
 		if (enableValidationLayers && !checkValidationLayerSupport()) {
 			throw std::runtime_error("validation layers requested, but not available!");
 		}
@@ -1507,7 +1512,19 @@ private:
 		double deltaTime = (currentTime - lastTime);
 		time += deltaTime;
 		lastTime = currentTime;
-		updateViewMatrixFromInput(deltaTime);
+		if (unfocused == 1 && !(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)) {
+			int windowHeight;
+			int windowWidth;
+			glfwGetWindowSize(window, &windowWidth, &windowHeight);
+			glfwSetCursorPos(window, windowWidth / 2, windowHeight / 2);
+			unfocused--;
+		}
+		if (unfocused != 2) {
+			updateViewMatrixFromInput(deltaTime);
+		}
+		else {
+			unfocused--;
+		}
 		UniformBufferObject ubo = {};
 		ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		ubo.view = glm::lookAt(position, position + direction, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -1528,6 +1545,7 @@ private:
 		}
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			windowInFocus = false;
+			unfocused = 2;
 		}
 		else {
 			windowInFocus = true;
@@ -1540,6 +1558,12 @@ private:
 			glfwGetCursorPos(window, &xpos, &ypos);
 			glfwGetWindowSize(window, &windowWidth, &windowHeight);
 			glfwSetCursorPos(window, windowWidth / 2, windowHeight / 2);
+			if (xpos > windowWidth) {
+				xpos = windowWidth / 2;
+			}
+			if (ypos > windowHeight) {
+				ypos = windowHeight / 2;
+			}
 			horizontalAngle -= sensitivity * deltaTime * float(windowWidth / 2 - xpos);
 			verticalAngle += sensitivity * deltaTime * float(windowHeight / 2 - ypos);
 			direction = { cos(verticalAngle) * sin(horizontalAngle),
@@ -1815,13 +1839,11 @@ private:
 	bool checkValidationLayerSupport() {
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
 		std::vector<VkLayerProperties> availableLayers(layerCount);
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
 		for (const char* layerName : validationLayers) {
 			bool layerFound = false;
-
 			for (const auto& layerProperties : availableLayers) {
 				if (strcmp(layerName, layerProperties.layerName) == 0) {
 					layerFound = true;
