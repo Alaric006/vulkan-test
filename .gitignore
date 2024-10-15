@@ -322,6 +322,9 @@ paket-files/
 # FAKE - F# Make
 .fake/
 
+#Ignores backup of project
+/project-terra-full
+
 # CodeRush personal settings
 .cr/personal
 
