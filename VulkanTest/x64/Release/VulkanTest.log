@@ -1,7 +1,0 @@
-﻿  Main.cpp
-  Generating code
-  2 of 2825 functions (<0.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    23 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-  VulkanTest.vcxproj -> C:\Documents\Coding\project-terra\x64\Release\VulkanTest.exe
