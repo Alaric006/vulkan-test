@@ -40,6 +40,7 @@ bld/
 # Visual Studio 2017 auto generated files
 Generated\ Files/
 
+
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
@@ -69,12 +70,13 @@ ScaffoldingReadMe.txt
 StyleCopReport.xml
 
 # Files built by Visual Studio
+*.sln
 *_i.c
 *_p.c
 *_h.h
 *.ilk
 *.meta
-*.obj
+.vs/*.obj
 *.iobj
 *.pch
 *.pdb
@@ -396,3 +398,7 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+#C++ Project files
+*.vcxproj.*
+*.vcxproj
